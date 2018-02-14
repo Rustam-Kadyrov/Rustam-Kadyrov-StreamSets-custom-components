@@ -1,0 +1,46 @@
+group 'demo.streamsets'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'distribution'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    sdc_api_version = '3.0.2.0'
+    http_client_version = '4.5.5'
+}
+
+dependencies {
+    compile(
+            "com.streamsets:streamsets-datacollector-api:$sdc_api_version",
+            "org.apache.httpcomponents:httpclient:$http_client_version"
+    )
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+task copyProcessorImages(type: Copy) {
+    into System.getProperty("user.dir") + '/build/classes/java/main/'
+    from System.getProperty("user.dir") + '/src/main/resources/'
+    include '*.png'
+}
+
+compileJava {
+    dependsOn copyProcessorImages
+}
+
+distributions {
+    main {
+        contents {
+            into('lib') {
+                from jar
+                from(project.configurations.runtime)
+            }
+        }
+    }
+}
