@@ -10,13 +10,12 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Objects;
 
 import static java.util.Objects.nonNull;
 
@@ -24,14 +23,19 @@ public abstract class OxfordDictSearchProcessor extends SingleLaneRecordProcesso
 
     public abstract String getInputFieldPath();
 
+    public abstract Integer getLimit();
+
+    public abstract String getOutputField();
+
     @Override
     protected void process(Record record, SingleLaneBatchMaker batchMaker) throws StageException {
-        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        CloseableHttpClient httpClient = null;
         try {
+            httpClient = HttpClientBuilder.create().build();
             String value = record.get(getInputFieldPath()).getValueAsString();
 
             HttpHost host = new HttpHost("od-api.oxforddictionaries.com", 443, "https");
-            HttpGet request = new HttpGet("/api/v1/search/en?q=" + value + "&prefix=false&limit=5");
+            HttpGet request = new HttpGet("/api/v1/search/en?q=" + value + "&prefix=false&limit=" + getLimit());
             request.addHeader("Accept", "application/json");
             request.addHeader("app_id", System.getenv("OXFORD_APP_ID"));
             request.addHeader("app_key", System.getenv("OXFORD_APP_KEY"));
@@ -46,7 +50,7 @@ public abstract class OxfordDictSearchProcessor extends SingleLaneRecordProcesso
             } else {
                 result = "NOT FOUND";
             }
-            recordOut.set("/response", Field.create(result));
+            recordOut.set(getOutputField(), Field.create(result));
             batchMaker.addRecord(recordOut);
         } catch (Exception e) {
             switch (getContext().getOnErrorRecord()) {
@@ -61,13 +65,14 @@ public abstract class OxfordDictSearchProcessor extends SingleLaneRecordProcesso
                     throw new IllegalStateException(Utils.format("It should never happen. OnError '{}'",
                             getContext().getOnErrorRecord(), e));
             }
+        } finally {
+            try {
+                if (Objects.nonNull(httpClient)) {
+                    httpClient.close();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
-//        finally {
-//            try {
-//                httpClient.close();
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
     }
 }

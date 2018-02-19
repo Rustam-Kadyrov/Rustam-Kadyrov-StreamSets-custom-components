@@ -27,9 +27,38 @@ public class OxfordDictSearchDProcessor extends OxfordDictSearchProcessor {
             description = "Input field path")
     public String inputFieldPath;
 
+    @ConfigDef(
+            required = true,
+            type = ConfigDef.Type.STRING,
+            defaultValue = "/response",
+            label = "Output field path",
+            displayPosition = 20,
+            group = "OXFORD",
+            description = "Output field path")
+    public String outputField;
+
+    @ConfigDef(
+            required = true,
+            type = ConfigDef.Type.NUMBER,
+            defaultValue = "10",
+            label = "Limit results",
+            displayPosition = 30,
+            group = "OXFORD",
+            description = "Limit results")
+    public Integer limit;
 
     @Override
     public String getInputFieldPath() {
         return inputFieldPath;
+    }
+
+    @Override
+    public String getOutputField() {
+        return outputField;
+    }
+
+    @Override
+    public Integer getLimit() {
+        return limit;
     }
 }

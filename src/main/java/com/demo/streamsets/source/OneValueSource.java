@@ -26,7 +26,8 @@ import com.streamsets.pipeline.api.base.BaseSource;
 import java.util.*;
 
 /**
- * This source generates one value
+ * This source generates one value and waits for timeout time before it'll finish.
+ * Use Reset Origin to reuse it.
  */
 public abstract class OneValueSource extends BaseSource {
 
@@ -56,6 +57,8 @@ public abstract class OneValueSource extends BaseSource {
             );
         }
 
+        startTime = System.currentTimeMillis();
+
         // If issues is not empty, the UI will inform the user of each configuration issue in the list.
         return issues;
     }
@@ -80,8 +83,6 @@ public abstract class OneValueSource extends BaseSource {
                 return null;
             }
         } else {
-            startTime = System.currentTimeMillis();
-
             Record record = getContext().createRecord(UUID.randomUUID().toString());
             Map<String, Field> map = new HashMap<>();
             map.put(getOutputFieldName(), Field.create(getValue()));

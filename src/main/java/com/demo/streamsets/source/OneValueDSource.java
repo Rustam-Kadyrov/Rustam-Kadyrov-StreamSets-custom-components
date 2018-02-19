@@ -22,6 +22,7 @@ import com.streamsets.pipeline.api.*;
         version = 1,
         label = "One Value Origin",
         description = "",
+        resetOffset = true,
         icon = "default.png",
         execution = ExecutionMode.STANDALONE,
         recordsByRef = true,
